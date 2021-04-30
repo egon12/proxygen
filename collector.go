@@ -78,7 +78,10 @@ func (t *InterfaceTransformer) Transform() (Proxy, error) {
 	receiverType := "*" + t.name + "Tracer"
 	receiver := Var{"t", receiverType}
 
-	funcs, _ := t.transformFunctions(t.source)
+	funcs, err := t.transformFunctions(t.source)
+	if err != nil {
+		return Proxy{}, err
+	}
 
 	for i := range funcs {
 		funcs[i].Receiver = receiver
@@ -102,6 +105,7 @@ func (t *InterfaceTransformer) Transform() (Proxy, error) {
 }
 
 func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType) ([]Func, error) {
+	var err error
 	res := make([]Func, len(it.Methods.List))
 
 	for i, m := range it.Methods.List {
@@ -114,39 +118,68 @@ func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType) ([]Func
 		funcName := m.Names[0].Name
 
 		// TODO check error
-		res[i], _ = t.transformFunction(funcName, ft)
+		res[i], err = t.transformFunction(funcName, ft)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return res, nil
 }
 
 func (c *InterfaceTransformer) transformFunction(name string, f *ast.FuncType) (Func, error) {
-	return Func{
-		Name:   name,
-		Params: c.transformFieldList(f.Params),
-		Return: c.transformFieldList(f.Results),
-	}, nil
+	var err error
+	result := Func{}
+
+	result.Name = name
+
+	result.Params, err = c.transformFieldList(f.Params)
+	if err != nil {
+		return result, err
+	}
+
+	result.Return, err = c.transformFieldList(f.Results)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
-func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) MultiVar {
+func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiVar, error) {
 	result := make([]Var, len(fields.List))
 
 	for i, f := range fields.List {
-		typeID, ok := f.Type.(*ast.Ident)
-		if !ok {
-			// TODO do something
-		}
-
 		name := ""
 		if len(f.Names) > 0 {
 			name = f.Names[0].Name
 		}
 
+		typeName, err := c.transformFieldType(f.Type)
+		if err != nil {
+			return nil, fmt.Errorf("error transform field %s: %v", name, err)
+		}
+
 		result[i] = Var{
 			Name: name,
-			Type: typeID.Name,
+			Type: typeName,
 		}
 	}
 
-	return result
+	return result, nil
+}
+
+func (c *InterfaceTransformer) transformFieldType(t ast.Expr) (string, error) {
+	switch ft := t.(type) {
+	case *ast.Ident:
+		return ft.Name, nil
+	case *ast.SelectorExpr:
+		res, err := c.transformFieldType(ft.X)
+		return res + "." + ft.Sel.Name, err
+	case *ast.ArrayType:
+		res, err := c.transformFieldType(ft.Elt)
+		return "[]" + res, err
+	default:
+		return "", fmt.Errorf("cannot transform fieldtype %T", t)
+	}
 }
