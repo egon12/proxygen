@@ -85,6 +85,7 @@ func (t *InterfaceTransformer) Transform() (Proxy, error) {
 
 	for i := range funcs {
 		funcs[i].Receiver = receiver
+		funcs[i].OriginalType = t.name
 
 		for j := range funcs[i].Params {
 			if funcs[i].Params[j].Name == "" {

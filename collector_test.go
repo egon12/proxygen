@@ -17,16 +17,18 @@ func TestCollector_Compile(t *testing.T) {
 
 	want := []Func{
 		{
-			Name:     "Get",
-			Receiver: Var{"t", "*SomeRepositoryTracer"},
-			Params:   []Var{{"id", "int"}},
-			Return:   []Var{{"", "Some"}, {"", "error"}},
+			Name:         "Get",
+			Receiver:     Var{"t", "*SomeRepositoryTracer"},
+			Params:       []Var{{"id", "int"}},
+			Return:       []Var{{"", "Some"}, {"", "error"}},
+			OriginalType: "SomeRepository",
 		},
 		{
-			Name:     "Save",
-			Receiver: Var{"t", "*SomeRepositoryTracer"},
-			Params:   []Var{{"arg0", "Some"}},
-			Return:   []Var{{"", "error"}},
+			Name:         "Save",
+			Receiver:     Var{"t", "*SomeRepositoryTracer"},
+			Params:       []Var{{"arg0", "Some"}},
+			Return:       []Var{{"", "error"}},
+			OriginalType: "SomeRepository",
 		},
 	}
 

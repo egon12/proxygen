@@ -9,10 +9,11 @@ import (
 
 type (
 	Func struct {
-		Name     string
-		Receiver Var
-		Params   MultiVar
-		Return   MultiVar
+		Name         string
+		Receiver     Var
+		Params       MultiVar
+		Return       MultiVar
+		OriginalType string
 	}
 
 	Var struct {
@@ -140,7 +141,7 @@ func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
 		dif := end.Sub(start)
 		log.Printf("Duration: {{.Receiver.Type}}.{{.Name}}: %v", dif)
 	}(time.Now())
-	return {{ .Receiver.Name }}.real.{{ .Name }}{{ .ParamsNames }}
+	return {{ .Receiver.Name }}.{{ .OriginalType }}.{{ .Name }}{{ .ParamsNames }}
 }
 `
 
@@ -171,7 +172,7 @@ func (f *StructGenerator) Generate(out io.Writer, p Proxy) error {
 
 const defaultStructTemplate = `
 type {{ .Receiver.Type }} struct {
-	real {{ .OriginalType }}
+	{{ .OriginalType }}
 }
 `
 

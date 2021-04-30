@@ -8,7 +8,7 @@ import (
 func TestGenerate(t *testing.T) {
 	input := Func{
 		Name:     "Func1",
-		Receiver: Var{"s", "*Struct1"},
+		Receiver: Var{"s", "*Struct1Tracer"},
 		Params: []Var{
 			{"args0", "Args0"},
 			{"args1", "Args1"},
@@ -17,6 +17,7 @@ func TestGenerate(t *testing.T) {
 			{"", "Ret0"},
 			{"", "error"},
 		},
+		OriginalType: "Struct1",
 	}
 
 	out := &strings.Builder{}
@@ -25,13 +26,13 @@ func TestGenerate(t *testing.T) {
 	got := out.String()
 
 	want := `
-func (s *Struct1) Func1 (args0 Args0,args1 Args1) ( Ret0, error) {
+func (s *Struct1Tracer) Func1 (args0 Args0,args1 Args1) ( Ret0, error) {
 	defer func(start time.Time) {
 		end := time.Now()
 		dif := end.Sub(start)
-		log.Printf("Duration: *Struct1.Func1: %v", dif)
+		log.Printf("Duration: *Struct1Tracer.Func1: %v", dif)
 	}(time.Now())
-	return s.real.Func1(args0,args1)
+	return s.Struct1.Func1(args0,args1)
 }
 `
 
