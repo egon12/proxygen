@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/egon12/proxygen"
@@ -13,6 +12,6 @@ func main() {
 
 	err := proxygen.Generate(filename, names)
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 }
