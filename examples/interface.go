@@ -9,6 +9,7 @@ type (
 	SomeRepository interface {
 		Get(id int) (Some, error)
 		Save(Some) error
+		All() map[int]Some
 	}
 
 	Rep interface {

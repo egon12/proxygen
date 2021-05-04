@@ -177,9 +177,23 @@ func (c *InterfaceTransformer) transformFieldType(t ast.Expr) (string, error) {
 	case *ast.SelectorExpr:
 		res, err := c.transformFieldType(ft.X)
 		return res + "." + ft.Sel.Name, err
+	case *ast.StarExpr:
+		res, err := c.transformFieldType(ft.X)
+		return "*" + res, err
 	case *ast.ArrayType:
 		res, err := c.transformFieldType(ft.Elt)
 		return "[]" + res, err
+	case *ast.MapType:
+		key, err := c.transformFieldType(ft.Key)
+		if err != nil {
+			return "", err
+		}
+		value, err := c.transformFieldType(ft.Value)
+		if err != nil {
+			return "", err
+		}
+		return "map[" + key + "]" + value, nil
+
 	default:
 		return "", fmt.Errorf("cannot transform fieldtype %T", t)
 	}

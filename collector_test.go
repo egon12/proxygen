@@ -30,6 +30,13 @@ func TestCollector_Compile(t *testing.T) {
 			Return:       []Var{{"", "error"}},
 			OriginalType: "SomeRepository",
 		},
+		{
+			Name:         "All",
+			Receiver:     Var{"t", "*SomeRepositoryTracer"},
+			Params:       []Var{},
+			Return:       []Var{{"", "map[int]Some"}},
+			OriginalType: "SomeRepository",
+		},
 	}
 
 	if !reflect.DeepEqual(got, want) {
