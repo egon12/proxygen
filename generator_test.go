@@ -45,12 +45,9 @@ func (s *Struct1Tracer) Func1 (args0 Args0,args1 Args1) ( Ret0, error) {
 func TestStructGenerator(t *testing.T) {
 	input := Proxy{
 		PackageName: "newpkg",
-		Receiver: Var{
-			Name: "",
-			Type: "MyTracer",
-		},
-		Funcs:    []Func{},
-		BaseType: "My",
+		Type:        "MyTracer",
+		Funcs:       []Func{},
+		BaseType:    "My",
 	}
 
 	out := &strings.Builder{}

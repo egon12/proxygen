@@ -19,14 +19,14 @@ func Generate(filename, interfaceNames string) error {
 
 	proxies := make([]Proxy, len(names))
 
-	//i := &InterfaceTransformer{}
+	t := &InterfaceTransformer{}
 
 	for i, name := range names {
-		t, err := c.FindInterface(name)
+		ci, err := c.FindInterface(name)
 		if err != nil {
 			return err
 		}
-		proxies[i], err = t.Transform()
+		proxies[i], err = t.Transform(ci, "Tracer")
 		if err != nil {
 			return err
 		}

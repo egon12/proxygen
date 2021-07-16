@@ -5,44 +5,24 @@ import (
 	"go/ast"
 )
 
-func (t *InterfaceTransformer) Transform() (Proxy, error) {
-	receiver := Var{"t", "*" + t.name}
+type (
+	InterfaceTransformer struct{}
+)
 
-	funcs, err := t.transformFunctions(t.source, receiver, t.name)
+func (t *InterfaceTransformer) Transform(ci *InterfaceType, suffix string) (Proxy, error) {
+	receiver := Var{"t", "*" + ci.Name + suffix}
+
+	funcs, err := t.transformFunctions(ci.Ast, receiver, ci.Name)
 	if err != nil {
 		return Proxy{}, err
 	}
 
-	p := Proxy{
-		PackageName: t.packageName,
-		Receiver:    receiver,
-		Funcs:       funcs,
-		BaseType:    t.name,
-	}
-
-	p.SetRecieverTypeSuffix("Tracer")
-
-	return p, nil
-}
-
-func (t *InterfaceTransformer) TransformCollectedInterface(ci CollectedInterface) (Proxy, error) {
-	receiver := Var{"t", "*" + ci.Name}
-
-	funcs, err := t.transformFunctions(t.source, receiver, ci.Name)
-	if err != nil {
-		return Proxy{}, err
-	}
-
-	p := Proxy{
+	return Proxy{
 		PackageName: ci.PackageName,
 		BaseType:    ci.Name,
-		Receiver:    receiver,
+		Type:        ci.Name + suffix,
 		Funcs:       funcs,
-	}
-
-	p.SetRecieverTypeSuffix("Tracer")
-
-	return p, nil
+	}, nil
 }
 
 func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType, receiver Var, baseType string) ([]Func, error) {
@@ -68,14 +48,14 @@ func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType, receive
 	return funcs, nil
 }
 
-func (c *InterfaceTransformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, err error) {
-	params, err = c.transformFieldList(f.Params)
+func (i *InterfaceTransformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, err error) {
+	params, err = i.transformFieldList(f.Params)
 	if err != nil {
 		err = fmt.Errorf("transform params failed: %w", err)
 		return
 	}
 
-	returns, err = c.transformFieldList(f.Results)
+	returns, err = i.transformFieldList(f.Results)
 	if err != nil {
 		err = fmt.Errorf("transform returns failed: %w", err)
 		return
@@ -107,25 +87,25 @@ func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiV
 	return result, nil
 }
 
-func (c *InterfaceTransformer) transformFieldType(t ast.Expr) (string, error) {
+func (i *InterfaceTransformer) transformFieldType(t ast.Expr) (string, error) {
 	switch ft := t.(type) {
 	case *ast.Ident:
 		return ft.Name, nil
 	case *ast.SelectorExpr:
-		res, err := c.transformFieldType(ft.X)
+		res, err := i.transformFieldType(ft.X)
 		return res + "." + ft.Sel.Name, err
 	case *ast.StarExpr:
-		res, err := c.transformFieldType(ft.X)
+		res, err := i.transformFieldType(ft.X)
 		return "*" + res, err
 	case *ast.ArrayType:
-		res, err := c.transformFieldType(ft.Elt)
+		res, err := i.transformFieldType(ft.Elt)
 		return "[]" + res, err
 	case *ast.MapType:
-		key, err := c.transformFieldType(ft.Key)
+		key, err := i.transformFieldType(ft.Key)
 		if err != nil {
 			return "", err
 		}
-		value, err := c.transformFieldType(ft.Value)
+		value, err := i.transformFieldType(ft.Value)
 		if err != nil {
 			return "", err
 		}

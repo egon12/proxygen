@@ -11,7 +11,9 @@ func TestCollector_Compile(t *testing.T) {
 	_ = c.Load("./examples/interface.go")
 	i, _ := c.FindInterface("SomeRepository")
 
-	data, _ := i.Transform()
+	it := &InterfaceTransformer{}
+
+	data, _ := it.Transform(i, "Tracer")
 
 	got := data.Funcs
 

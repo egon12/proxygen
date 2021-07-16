@@ -13,16 +13,10 @@ type (
 		file *ast.File
 	}
 
-	CollectedInterface struct {
+	InterfaceType struct {
 		Name        string
 		PackageName string
 		Ast         *ast.InterfaceType
-	}
-
-	InterfaceTransformer struct {
-		name        string
-		packageName string
-		source      *ast.InterfaceType
 	}
 )
 
@@ -47,7 +41,7 @@ func (c *Collector) Load(filename string) error {
 	return nil
 }
 
-func (c *Collector) FindInterface(name string) (*InterfaceTransformer, error) {
+func (c *Collector) FindInterface(name string) (*InterfaceType, error) {
 	for _, decl := range c.file.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok {
@@ -63,7 +57,11 @@ func (c *Collector) FindInterface(name string) (*InterfaceTransformer, error) {
 				if !ok {
 					return nil, fmt.Errorf("%s is not an interface it's a %v", name, ts.Type)
 				}
-				return &InterfaceTransformer{name, c.file.Name.Name, it}, nil
+				return &InterfaceType{
+					Name:        name,
+					PackageName: c.file.Name.Name,
+					Ast:         it,
+				}, nil
 			}
 		}
 	}

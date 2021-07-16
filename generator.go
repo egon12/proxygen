@@ -132,7 +132,7 @@ func (f *StructGenerator) Generate(out io.Writer, p Proxy) error {
 }
 
 const defaultStructTemplate = `
-type {{ .Receiver.Type }} struct {
+type {{ .Type }} struct {
 	{{ .BaseType }}
 }
 `

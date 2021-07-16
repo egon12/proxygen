@@ -44,9 +44,9 @@ type (
 	// Struct and its function
 	Proxy struct {
 		PackageName string
-		Receiver    Var
-		Funcs       []Func
 		BaseType    string
+		Type        string
+		Funcs       []Func
 	}
 )
 
@@ -99,7 +99,7 @@ func (f *Func) FixEmptyParams() {
 
 // SetRecieverTypeSuffix will set receiver for functions and struct
 func (p *Proxy) SetRecieverTypeSuffix(suffix string) {
-	p.Receiver.Type = p.Receiver.Type + suffix
+	p.Type = p.Type + suffix
 	for i := range p.Funcs {
 		p.Funcs[i].Receiver.Type = p.Funcs[i].Receiver.Type + suffix
 	}
