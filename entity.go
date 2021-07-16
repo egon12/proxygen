@@ -1,6 +1,9 @@
 package proxygen
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 type (
 	// Var is struct to store variable name and it's type
@@ -81,6 +84,16 @@ func (f Func) FuncText() FuncText {
 		ParamsText:   f.Params.Text(),
 		ReturnText:   f.Return.Text(),
 		ParamsNames:  f.Params.Names(),
+	}
+}
+
+// FixEmptyParams will set empty params names and set it with
+// arg0 arg1 and so on..
+func (f *Func) FixEmptyParams() {
+	for i := range f.Params {
+		if f.Params[i].Name == "" {
+			f.Params[i].Name = "arg" + strconv.Itoa(i)
+		}
 	}
 }
 

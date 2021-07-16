@@ -3,26 +3,14 @@ package proxygen
 import (
 	"fmt"
 	"go/ast"
-	"strconv"
 )
 
 func (t *InterfaceTransformer) Transform() (Proxy, error) {
 	receiver := Var{"t", "*" + t.name}
 
-	funcs, err := t.transformFunctions(t.source)
+	funcs, err := t.transformFunctions(t.source, receiver, t.name)
 	if err != nil {
 		return Proxy{}, err
-	}
-
-	for i := range funcs {
-		funcs[i].BaseType = t.name
-		funcs[i].Receiver = receiver
-
-		for j := range funcs[i].Params {
-			if funcs[i].Params[j].Name == "" {
-				funcs[i].Params[j].Name = "arg" + strconv.Itoa(j)
-			}
-		}
 	}
 
 	p := Proxy{
@@ -37,9 +25,29 @@ func (t *InterfaceTransformer) Transform() (Proxy, error) {
 	return p, nil
 }
 
-func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType) ([]Func, error) {
+func (t *InterfaceTransformer) TransformCollectedInterface(ci CollectedInterface) (Proxy, error) {
+	receiver := Var{"t", "*" + ci.Name}
+
+	funcs, err := t.transformFunctions(t.source, receiver, ci.Name)
+	if err != nil {
+		return Proxy{}, err
+	}
+
+	p := Proxy{
+		PackageName: ci.PackageName,
+		BaseType:    ci.Name,
+		Receiver:    receiver,
+		Funcs:       funcs,
+	}
+
+	p.SetRecieverTypeSuffix("Tracer")
+
+	return p, nil
+}
+
+func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType, receiver Var, baseType string) ([]Func, error) {
 	var err error
-	res := make([]Func, len(it.Methods.List))
+	funcs := make([]Func, len(it.Methods.List))
 
 	for i, m := range it.Methods.List {
 		ft, ok := m.Type.(*ast.FuncType)
@@ -47,36 +55,33 @@ func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType) ([]Func
 			return nil, fmt.Errorf("casting method(%T) to functype failed", m)
 		}
 
-		// TODO Check error?
-		funcName := m.Names[0].Name
-
-		// TODO check error
-		res[i], err = t.transformFunction(funcName, ft)
+		funcs[i].Name = m.Names[0].Name
+		funcs[i].Receiver = receiver
+		funcs[i].BaseType = baseType
+		funcs[i].Params, funcs[i].Return, err = t.getMultiVar(ft)
 		if err != nil {
 			return nil, err
 		}
+		funcs[i].FixEmptyParams()
 	}
 
-	return res, nil
+	return funcs, nil
 }
 
-func (c *InterfaceTransformer) transformFunction(name string, f *ast.FuncType) (Func, error) {
-	var err error
-	result := Func{}
-
-	result.Name = name
-
-	result.Params, err = c.transformFieldList(f.Params)
+func (c *InterfaceTransformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, err error) {
+	params, err = c.transformFieldList(f.Params)
 	if err != nil {
-		return result, err
+		err = fmt.Errorf("transform params failed: %w", err)
+		return
 	}
 
-	result.Return, err = c.transformFieldList(f.Results)
+	returns, err = c.transformFieldList(f.Results)
 	if err != nil {
-		return result, err
+		err = fmt.Errorf("transform returns failed: %w", err)
+		return
 	}
 
-	return result, nil
+	return
 }
 
 func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiVar, error) {
