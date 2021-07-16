@@ -8,7 +8,7 @@ import (
 func TestCollector_Compile(t *testing.T) {
 	c := NewCollector()
 
-	c.Load("./examples/interface.go")
+	_ = c.Load("./examples/interface.go")
 	i, _ := c.FindInterface("SomeRepository")
 
 	data, _ := i.Transform()
@@ -17,25 +17,25 @@ func TestCollector_Compile(t *testing.T) {
 
 	want := []Func{
 		{
-			Name:         "Get",
-			Receiver:     Var{"t", "*SomeRepositoryTracer"},
-			Params:       []Var{{"id", "int"}},
-			Return:       []Var{{"", "Some"}, {"", "error"}},
-			OriginalType: "SomeRepository",
+			Name:     "Get",
+			Receiver: Var{"t", "*SomeRepositoryTracer"},
+			Params:   []Var{{"id", "int"}},
+			Return:   []Var{{"", "Some"}, {"", "error"}},
+			BaseType: "SomeRepository",
 		},
 		{
-			Name:         "Save",
-			Receiver:     Var{"t", "*SomeRepositoryTracer"},
-			Params:       []Var{{"arg0", "Some"}},
-			Return:       []Var{{"", "error"}},
-			OriginalType: "SomeRepository",
+			Name:     "Save",
+			Receiver: Var{"t", "*SomeRepositoryTracer"},
+			Params:   []Var{{"arg0", "Some"}},
+			Return:   []Var{{"", "error"}},
+			BaseType: "SomeRepository",
 		},
 		{
-			Name:         "All",
-			Receiver:     Var{"t", "*SomeRepositoryTracer"},
-			Params:       []Var{},
-			Return:       []Var{{"", "map[int]Some"}},
-			OriginalType: "SomeRepository",
+			Name:     "All",
+			Receiver: Var{"t", "*SomeRepositoryTracer"},
+			Params:   []Var{},
+			Return:   []Var{{"", "map[int]Some"}},
+			BaseType: "SomeRepository",
 		},
 	}
 

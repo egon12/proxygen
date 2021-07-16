@@ -19,6 +19,8 @@ func Generate(filename, interfaceNames string) error {
 
 	proxies := make([]Proxy, len(names))
 
+	//i := &InterfaceTransformer{}
+
 	for i, name := range names {
 		t, err := c.FindInterface(name)
 		if err != nil {
@@ -42,7 +44,7 @@ func Generate(filename, interfaceNames string) error {
 		return err
 	}
 
-	out.Close() // Close before fix imports
+	_ = out.Close() // Close before fix imports
 	err = FixImports(outputFilename)
 	if err != nil {
 		return err

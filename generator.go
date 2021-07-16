@@ -3,41 +3,10 @@ package proxygen
 import (
 	"fmt"
 	"io"
-	"strings"
 	"text/template"
 )
 
 type (
-	Func struct {
-		Name         string
-		Receiver     Var
-		Params       MultiVar
-		Return       MultiVar
-		OriginalType string
-	}
-
-	Var struct {
-		Name string
-		Type string
-	}
-
-	MultiVar []Var
-
-	Proxy struct {
-		PackageName  string
-		Receiver     Var
-		OriginalType string
-		Funcs        []Func
-	}
-
-	FuncText struct {
-		Func
-		ReceiverText string
-		ParamsText   string
-		ReturnText   string
-		ParamsNames  string
-	}
-
 	Generator struct {
 		sg *StructGenerator
 		fg *FuncGenerator
@@ -122,15 +91,7 @@ func (f *FuncGenerator) SetTemplate(templateString string) error {
 }
 
 func (f *FuncGenerator) Generate(out io.Writer, input Func) error {
-
-	data := FuncText{
-		Func:         input,
-		ReceiverText: input.Receiver.Text(),
-		ParamsText:   input.Params.Text(),
-		ReturnText:   input.Return.Text(),
-		ParamsNames:  input.Params.Names(),
-	}
-
+	data := input.FuncText()
 	return f.tmpl.Execute(out, data)
 }
 
@@ -141,7 +102,7 @@ func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
 		dif := end.Sub(start)
 		log.Printf("Duration: {{.Receiver.Type}}.{{.Name}}: %v", dif)
 	}(time.Now())
-	return {{ .Receiver.Name }}.{{ .OriginalType }}.{{ .Name }}{{ .ParamsNames }}
+	return {{ .Receiver.Name }}.{{ .BaseType }}.{{ .Name }}{{ .ParamsNames }}
 }
 `
 
@@ -175,25 +136,3 @@ type {{ .Receiver.Type }} struct {
 	{{ .OriginalType }}
 }
 `
-
-func (v Var) Text() string {
-	return v.Name + " " + v.Type
-}
-
-func (m MultiVar) Text() string {
-	vars := make([]string, len(m))
-	for i, v := range m {
-		vars[i] = v.Text()
-	}
-
-	return "(" + strings.Join(vars, ",") + ")"
-}
-
-func (m MultiVar) Names() string {
-	vars := make([]string, len(m))
-	for i, v := range m {
-		vars[i] = v.Name
-	}
-
-	return "(" + strings.Join(vars, ",") + ")"
-}

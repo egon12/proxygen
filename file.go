@@ -17,7 +17,9 @@ func FixImports(filename string) error {
 	}
 
 	output, err := os.Create(filename)
-	defer output.Close()
+	defer func() {
+		_ = output.Close()
+	}()
 
 	if err != nil {
 		return err

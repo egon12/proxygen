@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGenerate(t *testing.T) {
+func TestFuncGenerate(t *testing.T) {
 	input := Func{
 		Name:     "Func1",
 		Receiver: Var{"s", "*Struct1Tracer"},
@@ -17,7 +17,7 @@ func TestGenerate(t *testing.T) {
 			{"", "Ret0"},
 			{"", "error"},
 		},
-		OriginalType: "Struct1",
+		BaseType: "Struct1",
 	}
 
 	out := &strings.Builder{}
@@ -40,4 +40,33 @@ func (s *Struct1Tracer) Func1 (args0 Args0,args1 Args1) ( Ret0, error) {
 		t.Errorf("\nwant: %s\n got: %s", want, got)
 		t.Errorf("\nwant: %v\n got: %v", []byte(want), []byte(got))
 	}
+}
+
+func TestStructGenerator(t *testing.T) {
+	input := Proxy{
+		PackageName: "newpkg",
+		Receiver: Var{
+			Name: "",
+			Type: "MyTracer",
+		},
+		Funcs:        []Func{},
+		OriginalType: "My",
+	}
+
+	out := &strings.Builder{}
+	g := NewStructGenerator()
+	g.Generate(out, input)
+	got := out.String()
+
+	want := `
+type MyTracer struct {
+	My
+}
+`
+
+	if got != want {
+		t.Errorf("\nwant: %s\n got: %s", want, got)
+		t.Errorf("\nwant: %v\n got: %v", []byte(want), []byte(got))
+	}
+
 }
