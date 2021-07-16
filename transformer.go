@@ -6,26 +6,26 @@ import (
 )
 
 type (
-	InterfaceTransformer struct{}
+	transformer struct{}
 )
 
-func (t *InterfaceTransformer) Transform(ci *InterfaceType, suffix string) (Proxy, error) {
-	receiver := Var{"t", "*" + ci.Name + suffix}
+func (t *transformer) Transform(i *interfaceType, suffix string) (Proxy, error) {
+	receiver := Var{"t", "*" + i.Name + suffix}
 
-	funcs, err := t.transformFunctions(ci.Ast, receiver, ci.Name)
+	funcs, err := t.transformFunctions(i.Ast, receiver, i.Name)
 	if err != nil {
 		return Proxy{}, err
 	}
 
 	return Proxy{
-		PackageName: ci.PackageName,
-		BaseType:    ci.Name,
-		Type:        ci.Name + suffix,
+		PackageName: i.PackageName,
+		BaseType:    i.Name,
+		Type:        i.Name + suffix,
 		Funcs:       funcs,
 	}, nil
 }
 
-func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType, receiver Var, baseType string) ([]Func, error) {
+func (t *transformer) transformFunctions(it *ast.InterfaceType, receiver Var, baseType string) ([]Func, error) {
 	var err error
 	funcs := make([]Func, len(it.Methods.List))
 
@@ -48,14 +48,14 @@ func (t *InterfaceTransformer) transformFunctions(it *ast.InterfaceType, receive
 	return funcs, nil
 }
 
-func (i *InterfaceTransformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, err error) {
-	params, err = i.transformFieldList(f.Params)
+func (t *transformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, err error) {
+	params, err = t.transformFieldList(f.Params)
 	if err != nil {
 		err = fmt.Errorf("transform params failed: %w", err)
 		return
 	}
 
-	returns, err = i.transformFieldList(f.Results)
+	returns, err = t.transformFieldList(f.Results)
 	if err != nil {
 		err = fmt.Errorf("transform returns failed: %w", err)
 		return
@@ -64,7 +64,7 @@ func (i *InterfaceTransformer) getMultiVar(f *ast.FuncType) (params, returns Mul
 	return
 }
 
-func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiVar, error) {
+func (t *transformer) transformFieldList(fields *ast.FieldList) (MultiVar, error) {
 	result := make([]Var, len(fields.List))
 
 	for i, f := range fields.List {
@@ -73,7 +73,7 @@ func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiV
 			name = f.Names[0].Name
 		}
 
-		typeName, err := c.transformFieldType(f.Type)
+		typeName, err := t.transformFieldType(f.Type)
 		if err != nil {
 			return nil, fmt.Errorf("error transform field %s: %v", name, err)
 		}
@@ -87,25 +87,25 @@ func (c *InterfaceTransformer) transformFieldList(fields *ast.FieldList) (MultiV
 	return result, nil
 }
 
-func (i *InterfaceTransformer) transformFieldType(t ast.Expr) (string, error) {
-	switch ft := t.(type) {
+func (t *transformer) transformFieldType(ex ast.Expr) (string, error) {
+	switch ft := ex.(type) {
 	case *ast.Ident:
 		return ft.Name, nil
 	case *ast.SelectorExpr:
-		res, err := i.transformFieldType(ft.X)
+		res, err := t.transformFieldType(ft.X)
 		return res + "." + ft.Sel.Name, err
 	case *ast.StarExpr:
-		res, err := i.transformFieldType(ft.X)
+		res, err := t.transformFieldType(ft.X)
 		return "*" + res, err
 	case *ast.ArrayType:
-		res, err := i.transformFieldType(ft.Elt)
+		res, err := t.transformFieldType(ft.Elt)
 		return "[]" + res, err
 	case *ast.MapType:
-		key, err := i.transformFieldType(ft.Key)
+		key, err := t.transformFieldType(ft.Key)
 		if err != nil {
 			return "", err
 		}
-		value, err := i.transformFieldType(ft.Value)
+		value, err := t.transformFieldType(ft.Value)
 		if err != nil {
 			return "", err
 		}

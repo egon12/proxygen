@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// Generator will generate code with input Proxy
 	Generator struct {
 		sg *StructGenerator
 		fg *FuncGenerator

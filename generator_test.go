@@ -22,7 +22,7 @@ func TestFuncGenerate(t *testing.T) {
 
 	out := &strings.Builder{}
 	g := NewFuncGenerator()
-	g.Generate(out, input)
+	_ = g.Generate(out, input)
 	got := out.String()
 
 	want := `
@@ -52,7 +52,7 @@ func TestStructGenerator(t *testing.T) {
 
 	out := &strings.Builder{}
 	g := NewStructGenerator()
-	g.Generate(out, input)
+	_ = g.Generate(out, input)
 	got := out.String()
 
 	want := `
