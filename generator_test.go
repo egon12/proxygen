@@ -49,8 +49,8 @@ func TestStructGenerator(t *testing.T) {
 			Name: "",
 			Type: "MyTracer",
 		},
-		Funcs:        []Func{},
-		OriginalType: "My",
+		Funcs:    []Func{},
+		BaseType: "My",
 	}
 
 	out := &strings.Builder{}

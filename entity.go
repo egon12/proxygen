@@ -40,10 +40,10 @@ type (
 	// Proxy is struct that store data that can be used to generate
 	// Struct and its function
 	Proxy struct {
-		PackageName  string
-		Receiver     Var
-		Funcs        []Func
-		OriginalType string
+		PackageName string
+		Receiver    Var
+		Funcs       []Func
+		BaseType    string
 	}
 )
 

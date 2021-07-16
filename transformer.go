@@ -26,10 +26,10 @@ func (t *InterfaceTransformer) Transform() (Proxy, error) {
 	}
 
 	p := Proxy{
-		PackageName:  t.packageName,
-		Receiver:     receiver,
-		Funcs:        funcs,
-		OriginalType: t.name,
+		PackageName: t.packageName,
+		Receiver:    receiver,
+		Funcs:       funcs,
+		BaseType:    t.name,
 	}
 
 	p.SetRecieverTypeSuffix("Tracer")
