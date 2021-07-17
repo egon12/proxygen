@@ -10,6 +10,7 @@ func GenerateTracerFileName(filename string) string {
 	return strings.Replace(filename, ".go", "_tracer.go", 1)
 }
 
+// FixImports will fix and formattion any missing error in the generated code
 func FixImports(filename string) error {
 	content, err := exec.Command("goimports", filename).CombinedOutput()
 	if err != nil {

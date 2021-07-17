@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// This is to used by cmd or main pacage
 func Generate(filename, interfaceNames string) error {
 	var err error
 
@@ -39,7 +40,7 @@ func Generate(filename, interfaceNames string) error {
 	}
 
 	g := NewGenerator()
-	err = g.Generate(out, proxies)
+	err = g.GenerateAll(out, proxies)
 	if err != nil {
 		return err
 	}

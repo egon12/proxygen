@@ -9,21 +9,28 @@ import (
 )
 
 type (
+	// Collector is the first entry door of this logic.
+	// To start generated code we need to instantiate
+	// this collector with NewCollector. Then fill the
+	// filename that this Collector need to read
 	Collector struct {
 		file *ast.File
 	}
 
-	interfaceType struct {
+	InterfaceType struct {
 		Name        string
 		PackageName string
 		Ast         *ast.InterfaceType
 	}
 )
 
+// NewCollector will return new Collector
 func NewCollector() *Collector {
 	return &Collector{}
 }
 
+// Load will make the program read the file, then get ast
+// from it
 func (c *Collector) Load(filename string) error {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -41,7 +48,8 @@ func (c *Collector) Load(filename string) error {
 	return nil
 }
 
-func (c *Collector) FindInterface(name string) (*interfaceType, error) {
+// FindInterface will return InterfaceType that can be transformed by transformer
+func (c *Collector) FindInterface(name string) (*InterfaceType, error) {
 	for _, decl := range c.file.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
 		if !ok {
@@ -57,7 +65,7 @@ func (c *Collector) FindInterface(name string) (*interfaceType, error) {
 				if !ok {
 					return nil, fmt.Errorf("%s is not an interface it's a %v", name, ts.Type)
 				}
-				return &interfaceType{
+				return &InterfaceType{
 					Name:        name,
 					PackageName: c.file.Name.Name,
 					Ast:         it,

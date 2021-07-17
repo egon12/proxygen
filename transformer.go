@@ -9,7 +9,7 @@ type (
 	transformer struct{}
 )
 
-func (t *transformer) Transform(i *interfaceType, suffix string) (Proxy, error) {
+func (t *transformer) Transform(i *InterfaceType, suffix string) (Proxy, error) {
 	receiver := Var{"t", "*" + i.Name + suffix}
 
 	funcs, err := t.transformFunctions(i.Ast, receiver, i.Name)

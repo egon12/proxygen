@@ -9,27 +9,31 @@ import (
 type (
 	// Generator will generate code with input Proxy
 	Generator struct {
-		sg *StructGenerator
-		fg *FuncGenerator
+		sg *structGenerator
+		fg *funcGenerator
 	}
 
-	FuncGenerator struct {
+	// funcGenerator will generate function code
+	funcGenerator struct {
 		tmpl *template.Template
 	}
 
-	StructGenerator struct {
+	// structGenerator will generate struct code
+	structGenerator struct {
 		tmpl *template.Template
 	}
 )
 
+// NewGenerator will instatiate Generator that have FuncGenerator and StructGenerator
 func NewGenerator() *Generator {
 	return &Generator{
-		sg: NewStructGenerator(),
-		fg: NewFuncGenerator(),
+		sg: newStructGenerator(),
+		fg: newFuncGenerator(),
 	}
 }
 
-func (g *Generator) Generate(out io.Writer, data []Proxy) error {
+// GenerateAll with generat all proxies from Proxies into out (io.Writer)
+func (g *Generator) GenerateAll(out io.Writer, data []Proxy) error {
 	var err error
 
 	if len(data) < 1 {
@@ -43,7 +47,7 @@ func (g *Generator) Generate(out io.Writer, data []Proxy) error {
 	}
 
 	for _, datum := range data {
-		err = g.generateSingle(out, datum)
+		err = g.Generate(out, datum)
 		if err != nil {
 			return err
 		}
@@ -52,7 +56,10 @@ func (g *Generator) Generate(out io.Writer, data []Proxy) error {
 	return nil
 }
 
-func (g *Generator) generateSingle(out io.Writer, data Proxy) error {
+// Generate will generate proxy struct and all its funs into out (io.Writer)
+// this function doesnt generate package name at first line. If you need to
+// also generate package you can use GenerateAll
+func (g *Generator) Generate(out io.Writer, data Proxy) error {
 	var err error
 
 	err = g.sg.Generate(out, data)
@@ -61,7 +68,7 @@ func (g *Generator) generateSingle(out io.Writer, data Proxy) error {
 	}
 
 	for _, f := range data.Funcs {
-		err = g.fg.Generate(out, f)
+		err = g.fg.generate(out, f)
 		if err != nil {
 			return err
 		}
@@ -70,8 +77,9 @@ func (g *Generator) generateSingle(out io.Writer, data Proxy) error {
 	return err
 }
 
-func NewFuncGenerator() *FuncGenerator {
-	f := &FuncGenerator{}
+// newFuncGenerator will instantiate FuncGenerator
+func newFuncGenerator() *funcGenerator {
+	f := &funcGenerator{}
 
 	err := f.SetTemplate(defaultFuncTemplate)
 	if err != nil {
@@ -81,7 +89,8 @@ func NewFuncGenerator() *FuncGenerator {
 	return f
 }
 
-func (f *FuncGenerator) SetTemplate(templateString string) error {
+// SetTemplate is for
+func (f *funcGenerator) SetTemplate(templateString string) error {
 	tmpl, err := template.New("func").Parse(templateString)
 	if err != nil {
 		return err
@@ -91,7 +100,7 @@ func (f *FuncGenerator) SetTemplate(templateString string) error {
 	return nil
 }
 
-func (f *FuncGenerator) Generate(out io.Writer, input Func) error {
+func (f *funcGenerator) generate(out io.Writer, input Func) error {
 	data := input.FuncText()
 	return f.tmpl.Execute(out, data)
 }
@@ -107,8 +116,8 @@ func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
 }
 `
 
-func NewStructGenerator() *StructGenerator {
-	f := &StructGenerator{}
+func newStructGenerator() *structGenerator {
+	f := &structGenerator{}
 
 	err := f.SetTemplate(defaultStructTemplate)
 	if err != nil {
@@ -118,7 +127,7 @@ func NewStructGenerator() *StructGenerator {
 	return f
 }
 
-func (f *StructGenerator) SetTemplate(templateString string) error {
+func (f *structGenerator) SetTemplate(templateString string) error {
 	tmpl, err := template.New("struct").Parse(templateString)
 	if err != nil {
 		return err
@@ -128,7 +137,8 @@ func (f *StructGenerator) SetTemplate(templateString string) error {
 	return nil
 }
 
-func (f *StructGenerator) Generate(out io.Writer, p Proxy) error {
+//
+func (f *structGenerator) Generate(out io.Writer, p Proxy) error {
 	return f.tmpl.Execute(out, p)
 }
 
