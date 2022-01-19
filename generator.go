@@ -107,11 +107,8 @@ func (f *funcGenerator) generate(out io.Writer, input Func) error {
 
 const defaultFuncTemplate = `
 func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
-	defer func(start time.Time) {
-		end := time.Now()
-		dif := end.Sub(start)
-		log.Printf("Duration: {{.Receiver.Type}}.{{.Name}}: %v", dif)
-	}(time.Now())
+	span, _ := tracer.StartSpanFromContext(ctx, "{{ .Receiver.Type }}.{{ .Name }}")
+	defer span.Finish()
 	return {{ .Receiver.Name }}.{{ .BaseType }}.{{ .Name }}{{ .ParamsNames }}
 }
 `
