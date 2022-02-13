@@ -107,7 +107,7 @@ func (f *funcGenerator) generate(out io.Writer, input Func) error {
 
 const defaultFuncTemplate = `
 func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
-	span, _ := tracer.StartSpanFromContext(ctx, "{{ .Receiver.Type }}.{{ .Name }}")
+	span, ctx := tracer.StartSpanFromContext(ctx, "{{ .BaseType }}.{{ .Name }}")
 	defer span.Finish()
 	return {{ .Receiver.Name }}.{{ .BaseType }}.{{ .Name }}{{ .ParamsNames }}
 }

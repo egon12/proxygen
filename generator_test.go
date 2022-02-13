@@ -27,11 +27,8 @@ func TestFuncGenerate(t *testing.T) {
 
 	want := `
 func (s *Struct1Tracer) Func1 (args0 Args0,args1 Args1) ( Ret0, error) {
-	defer func(start time.Time) {
-		end := time.Now()
-		dif := end.Sub(start)
-		log.Printf("Duration: *Struct1Tracer.Func1: %v", dif)
-	}(time.Now())
+	span, ctx := tracer.StartSpanFromContext(ctx, "Struct1.Func1")
+	defer span.Finish()
 	return s.Struct1.Func1(args0,args1)
 }
 `
@@ -65,5 +62,4 @@ type MyTracer struct {
 		t.Errorf("\nwant: %s\n got: %s", want, got)
 		t.Errorf("\nwant: %v\n got: %v", []byte(want), []byte(got))
 	}
-
 }
