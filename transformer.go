@@ -65,6 +65,10 @@ func (t *transformer) getMultiVar(f *ast.FuncType) (params, returns MultiVar, er
 }
 
 func (t *transformer) transformFieldList(fields *ast.FieldList) (MultiVar, error) {
+	if fields == nil {
+		return []Var{}, nil
+	}
+
 	result := make([]Var, len(fields.List))
 
 	for i, f := range fields.List {
