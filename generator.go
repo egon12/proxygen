@@ -33,21 +33,25 @@ func NewGenerator() *Generator {
 }
 
 // GenerateAll with generat all proxies from Proxies into out (io.Writer)
-func (g *Generator) GenerateAll(out io.Writer, data []Proxy) error {
+func (g *Generator) GenerateAll(out io.Writer, data []Proxy, pkgName string) error {
 	var err error
 
 	if len(data) < 1 {
 		return fmt.Errorf("proxies object is empty")
 	}
 
-	packageLine := fmt.Sprintf("package %s\n", data[0].PackageName)
+	if pkgName == "" {
+		pkgName = data[0].PackageName
+	}
+
+	packageLine := fmt.Sprintf("package %s\n", pkgName)
 	_, err = out.Write([]byte(packageLine))
 	if err != nil {
 		return err
 	}
 
 	for _, datum := range data {
-		err = g.Generate(out, datum)
+		err = g.Generate(out, datum, pkgName)
 		if err != nil {
 			return err
 		}
@@ -59,7 +63,7 @@ func (g *Generator) GenerateAll(out io.Writer, data []Proxy) error {
 // Generate will generate proxy struct and all its funs into out (io.Writer)
 // this function doesnt generate package name at first line. If you need to
 // also generate package you can use GenerateAll
-func (g *Generator) Generate(out io.Writer, data Proxy) error {
+func (g *Generator) Generate(out io.Writer, data Proxy, pgkName string) error {
 	var err error
 
 	err = g.sg.Generate(out, data)
@@ -109,7 +113,7 @@ const defaultFuncTemplate = `
 func ({{ .ReceiverText }}) {{ .Name }} {{ .ParamsText }} {{ .ReturnText }} {
 	span, ctx := tracer.StartSpanFromContext(ctx, "{{ .BaseType }}.{{ .Name }}")
 	defer span.Finish()
-	return {{ .Receiver.Name }}.{{ .BaseType }}.{{ .Name }}{{ .ParamsNames }}
+	{{ if .ReturnText }}return {{ end }}{{ .Receiver.Name }}.{{ .BaseType }}.{{ .Name }}{{ .ParamsNames }}
 }
 `
 
@@ -141,6 +145,6 @@ func (f *structGenerator) Generate(out io.Writer, p Proxy) error {
 
 const defaultStructTemplate = `
 type {{ .Type }} struct {
-	{{ .BaseType }}
+	{{ .PackageName }}.{{ .BaseType }}
 }
 `

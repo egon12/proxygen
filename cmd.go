@@ -7,8 +7,12 @@ import (
 )
 
 // This is to used by cmd or main pacage
-func Generate(filename, interfaceNames string) error {
+func Generate(filename, interfaceNames, outputDir, packageName string) error {
 	var err error
+
+	if outputDir == "" {
+		outputDir = "."
+	}
 
 	c := NewCollector()
 	err = c.Load(filename)
@@ -33,14 +37,16 @@ func Generate(filename, interfaceNames string) error {
 		}
 	}
 
-	outputFilename := GenerateTracerFileName(filename)
+	outputFilename := outputDir + "/" + GenerateTracerFileName(filename)
+
+	// TODO use separator from path
 	out, err := os.Create(outputFilename)
 	if err != nil {
 		return fmt.Errorf("error create %s: %v", outputFilename, err)
 	}
 
 	g := NewGenerator()
-	err = g.GenerateAll(out, proxies)
+	err = g.GenerateAll(out, proxies, packageName)
 	if err != nil {
 		return err
 	}
